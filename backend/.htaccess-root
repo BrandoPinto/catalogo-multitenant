@@ -1,0 +1,24 @@
+# ── Root .htaccess for Wildcard Subdomain Setup ─────────────
+# Place this in your domain root (public_html)
+#
+# Prerequisite: Add wildcard DNS record
+#   *.midominio.com → your server IP
+# And wildcard SSL cert via Let's Encrypt or cPanel
+
+Options -Indexes
+Options +FollowSymLinks
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # If the subdomain request maps to a real directory, serve it
+    RewriteCond %{HTTP_HOST} ^([a-z0-9-]+)\.midominio\.com$ [NC]
+    RewriteCond %{DOCUMENT_ROOT}/%1 -d
+    RewriteRule ^ - [L]
+
+    # Otherwise route everything through the API backend
+    # Backend lives in /public_html/api/ or /public_html/backend/
+    RewriteCond %{HTTP_HOST} ^([a-z0-9-]+)\.midominio\.com$ [NC]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ /backend/index.php [L,QSA]
+</IfModule>

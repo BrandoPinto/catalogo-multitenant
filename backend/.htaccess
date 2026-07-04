@@ -1,0 +1,51 @@
+Options -Indexes
+Options +FollowSymLinks
+
+# ── Security Headers ─────────────────────────────────────────
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # Uncomment in production with HTTPS:
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# ── Hide sensitive files ─────────────────────────────────────
+<FilesMatch "^\.env|^\.git|composer\.(json|lock)|package\.json">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# ── Protect config directory ─────────────────────────────────
+<DirectoryMatch "/(config|helpers|middlewares|controllers|routes|models)/">
+    Order allow,deny
+    Deny from all
+</DirectoryMatch>
+
+# ── URL Rewriting ─────────────────────────────────────────────
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Allow uploads directory to be served directly
+    RewriteRule ^uploads/ - [L]
+
+    # Redirect all requests to index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
+
+# ── PHP settings ──────────────────────────────────────────────
+<IfModule mod_php.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 15M
+    php_value max_execution_time 60
+    php_value memory_limit 256M
+</IfModule>
+
+# ── Compression ───────────────────────────────────────────────
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE application/json text/plain application/javascript text/css
+</IfModule>
